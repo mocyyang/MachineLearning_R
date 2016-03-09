@@ -1,0 +1,49 @@
+---
+title: "MLproject"
+output: html_document
+---
+
+Background:
+
+Data: Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions (variable “classe”). Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes.
+
+Task: This program uses the “Random Forest” with n-fold cross validation in the R caret package to the “classe” variable given a list of input features. Below is a step by step process:
+
+1. Load the data:
+
+```{r, hide=TRUE}
+library(caret)
+trainData_URL<-"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testData_URL<-"http://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+trainData<-read.csv(trainData_URL,na.strings=c("NA",""))
+testData<-read.csv(testData_URL,na.strings=c("NA",""))
+```
+
+2. Data clean-up (get rid of trivial or mostly “NA” columns)
+
+```{r, hide = TRUE}
+trainData<-trainData[,7:160]
+nonNA_data<-apply(!is.na(trainData),2,sum)>19621
+trainData<-trainData[,nonNA_data]
+```
+
+3. Data partition
+
+```{r, hide = TRUE}
+InTrain<-createDataPartition(y=trainData$classe,p=0.5,list=FALSE)
+training1<-trainData[InTrain,]
+```
+
+
+5. Train the model
+
+```{r, hide = TRUE}
+fit_rf<-train(classe~.,data=training1,method="rf",
+                trControl=trainControl(method="cv",number=5),
+                prox=TRUE,allowParallel=TRUE)
+```
+
+Result (accuracy is satisfactory):
+```{r, hide = TRUE}
+print(fit_rf)
+```
